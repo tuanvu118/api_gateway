@@ -1,0 +1,70 @@
+{
+  auto_https off
+}
+
+(common_site) {
+  encode zstd gzip
+  header {
+    -Server
+    X-Content-Type-Options "nosniff"
+    X-Frame-Options "SAMEORIGIN"
+    Referrer-Policy "strict-origin-when-cross-origin"
+  }
+  log {
+    output stdout
+    format console
+  }
+}
+
+(app_proxy_common) {
+  header_up Host {host}
+  header_up X-Forwarded-Host {host}
+  header_up X-Forwarded-Proto {scheme}
+  header_up X-Forwarded-For {remote_host}
+  transport http {
+    dial_timeout 5s
+    response_header_timeout 30s
+    read_timeout 30s
+    write_timeout 30s
+  }
+}
+
+http://localhost {
+  import common_site
+
+  handle /api/* {
+    reverse_proxy be-service-api:8000 {
+      import app_proxy_common
+    }
+  }
+
+  handle_path /qr/* {
+    rewrite * /api{uri}
+    reverse_proxy qr-service-api:8000 {
+      import app_proxy_common
+    }
+  }
+
+  handle {
+    reverse_proxy frontend:80
+  }
+}
+
+http://api.localhost {
+  import common_site
+  reverse_proxy be-service-api:8000 {
+    import app_proxy_common
+  }
+}
+
+http://qr.localhost {
+  import common_site
+  reverse_proxy qr-service-api:8000 {
+    import app_proxy_common
+  }
+}
+
+http://rabbitmq.localhost {
+  import common_site
+  reverse_proxy rabbitmq:15672
+}
