@@ -56,9 +56,8 @@ http://localhost {
     }
   }
 
-  handle_path /qr/* {
+  handle /qr/* {
     import auth_gateway
-    rewrite * /api{uri}
     reverse_proxy qr-service-api:8000 {
       import app_proxy_common
     }

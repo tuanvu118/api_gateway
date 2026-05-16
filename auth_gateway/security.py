@@ -267,7 +267,16 @@ PREFIX_HANDLERS = {
     # POST /qr/manual-attendance  → require_staff  (điểm danh thủ công)
     # POST /qr/checkin            → require_user   (sinh viên tự check-in)
     # -------------------------------------------------------------------------
-    "/qr/attendance":       require_staff,
-    "/qr/manual-attendance":require_staff,
-    "/qr/checkin":          require_user,
+    "/qr/attendance/events":       require_manager,
+    "/qr/attendance/unit-events":  require_manager,
+    "/qr/attendance/scan":         require_user,
+    "/qr/attendance/code":         require_user,
+
+
+    # Cho phép xem tài liệu API (Swagger) công khai
+    "/api/docs":         allow_public,
+    "/api/openapi.json": allow_public,
+    "/qr/docs":         allow_public,
+    "/qr/openapi.json":  allow_public,
+
 }
