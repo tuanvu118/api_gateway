@@ -1,4 +1,5 @@
 import json
+import re
 from fastapi import FastAPI, Header, Request, HTTPException, status
 from fastapi.responses import Response
 from security import get_current_user, PREFIX_HANDLERS, require_user
@@ -30,22 +31,29 @@ def find_handler(method: str, path: str):
         reverse=True
     )
     
+    def matches_pattern(pattern_path, req_path):
+        if "{" in pattern_path:
+            # Convert {id} to [^/]+ for regex matching
+            regex_str = "^" + re.sub(r'\{[^}]+\}', r'[^/]+', pattern_path)
+            # Allow exactly matching the pattern or matching as a prefix (with / following)
+            regex_str += r'(/.*)?$'
+            return re.match(regex_str, req_path) is not None
+        else:
+            return req_path == pattern_path or req_path.startswith(pattern_path + "/")
+
     # 3. Try Method:Path prefix matching
-    # We want to match segments, so we add a trailing slash if needed
     for prefix in sorted_prefixes:
         if ":" in prefix:
             p_method, p_path = prefix.split(":", 1)
-            if p_method == method and (path == p_path or path.startswith(p_path + "/")):
+            if p_method == method and matches_pattern(p_path, norm_path):
                 return PREFIX_HANDLERS[prefix]
             
     # 4. Try Path only prefix matching
     for prefix in sorted_prefixes:
         if ":" not in prefix:
-            if path == prefix or path.startswith(prefix + "/"):
+            if matches_pattern(prefix, norm_path):
                 return PREFIX_HANDLERS[prefix]
                 
-    # Default fallback: if it's under /api/ or /qr/, default to require_user?
-    # Actually, better to be strict.
     return None
 
 @app.get("/verify")
