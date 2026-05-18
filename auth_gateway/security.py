@@ -185,6 +185,9 @@ PREFIX_HANDLERS = {
     "GET:/api/reports":                                             require_staff,
     "/api/reports":                                                 require_staff,
 
+    "POST:/api/manual-attendance/mark": require_manager,
+    "/api/manual-attendance":           require_manager,
+
     "/api/upload": require_user,
 
     "/qr/attendance/events":       require_manager,
