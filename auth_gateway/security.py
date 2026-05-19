@@ -1,9 +1,15 @@
 import os
+from pathlib import Path
 from typing import Optional, List
 
 from fastapi import HTTPException, status
 from jose import JWTError, jwt
 from pydantic import BaseModel
+from dotenv import load_dotenv
+
+
+APP_DIR = Path(__file__).resolve().parent
+load_dotenv(APP_DIR / ".env")
 
 JWT_SECRET = os.getenv("JWT_SECRET", "CHANGE_ME_SECRET_KEY")
 ALGORITHM = "HS256"
